@@ -1,0 +1,24 @@
+{{- range $endpoint := .Values.global.endpoints }}
+---
+apiVersion: v1
+kind: Endpoints
+metadata: 
+  name: {{ $endpoint.name }}
+subsets:
+  - addresses:
+      - ip: {{ $endpoint.ip }}
+    ports:
+      - port: {{ $endpoint.port }}
+        name: app
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $endpoint.name }}
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    name: app
+{{- end }}

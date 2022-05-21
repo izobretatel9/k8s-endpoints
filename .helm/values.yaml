@@ -1,0 +1,11 @@
+global:
+  endpoints:
+  - ip: 192.111.11.1
+    port: 389
+    name: ad-one
+  - ip: 192.111.11.2
+    port: 389
+    name: ad-two
+  - ip: 192.111.11.3
+    port: 389
+    name: ad-three
