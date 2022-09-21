@@ -4,13 +4,18 @@ properties([
   parameters([
     choice(      name: 'TYPE',              choices:     ['converge', 
                                                           'dismiss'],
-                                            defaultValue: 'converge',       description: 'TYPE of run Deploy or Dismis packages'),
-    string(      name: 'SERVICE',           defaultValue: 'endpoints',      description: 'Name of Service (also namespace too)'),
+                                            defaultValue: 'converge',     description: 'TYPE of run Deploy or Dismis packages'),
+    string(      name: 'SERVICE',           defaultValue: 'endpoints',    description: 'Name of Service (also namespace too)'),
   ])
 ])
 
 pipeline {
-  agent { label 'multiwerf' }
+  agent {
+        kubernetes {
+        cloud 'kubernetes-local'
+        inheritFrom 'k8s-agent-multiwerf-dev-cd'
+        }
+    }
 
   environment {
     WERF_TMP_DIR                = '/home/jenkins/tmp/'
@@ -19,7 +24,7 @@ pipeline {
     
     YC_REGISTRY                 = 'cr.yandex/xxx'
     AWS_REGISTRY                = 'xxx.amazonaws.com'
-    WERF_STAGES_STORAGE         = "cr.yandex/xxx/${params.SERVICE}/stages"
+    WERF_REPO                   = "cr.yandex/xxx/${params.SERVICE}/stages"
 
     YC_AUTH                     = credentials("ya_registry_key")
     KUBECONFIG                  = credentials('werf_kube_config')
@@ -48,7 +53,8 @@ pipeline {
         anyOf { branch 'dev'; }
       }
       environment {   
-        WERF_IMAGES_REPO      = "${YC_REGISTRY}/${params.SERVICE}"
+        WERF_FINAL_REPO       = "${YC_REGISTRY}/${params.SERVICE}"
+        WERF_ADD_CUSTOM_TAG_1 = "%image%-dev"
 
         WERF_NAMESPACE        = "${params.SERVICE}"
         WERF_ENV              = "dev"
@@ -56,7 +62,7 @@ pipeline {
       }
       steps {
         script {
-          functions.runWerf("${params.TYPE}")
+          functions.runWerf("${params.TYPE}", "1.2 beta")
         }
       }
     }
@@ -65,7 +71,8 @@ pipeline {
         anyOf { branch 'master'; }
       }
       environment {
-        WERF_IMAGES_REPO      = "${YC_REGISTRY}/${params.SERVICE}"
+        WERF_FINAL_REPO       = "${YC_REGISTRY}/${params.SERVICE}"
+        WERF_ADD_CUSTOM_TAG_1 = "%image%-production"
 
         WERF_NAMESPACE        = "${params.SERVICE}"
         WERF_ENV              = "production"
@@ -73,7 +80,7 @@ pipeline {
       }
       steps {
         script {
-          functions.runWerf("${params.TYPE}")
+          functions.runWerf("${params.TYPE}", "1.2 beta")
         }
       }
     }
@@ -82,7 +89,8 @@ pipeline {
         anyOf { branch 'master'; }
       }
       environment { 
-        WERF_IMAGES_REPO      = "${AWS_REGISTRY}/${params.SERVICE}"
+        WERF_FINAL_REPO       = "${AWS_REGISTRY}/${params.SERVICE}"
+        WERF_ADD_CUSTOM_TAG_1 = "%image%-production"
 
         WERF_NAMESPACE        = "${params.SERVICE}"
         WERF_ENV              = "aws-production"
@@ -90,7 +98,7 @@ pipeline {
       }
       steps {
         script {
-          functions.runWerf("${params.TYPE}")
+          functions.runWerf("${params.TYPE}", "1.2 beta")
         }
       }
     }

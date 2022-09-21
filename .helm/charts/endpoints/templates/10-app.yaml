@@ -1,4 +1,5 @@
-{{- range $endpoint := .Values.global.endpoints }}
+{{- $endpoints := pluck $.Values.werf.env .Values.global.endpoints | first | default .Values.global.endpoints._default}}
+{{- range $_, $endpoint := $endpoints }}
 ---
 apiVersion: v1
 kind: Endpoints

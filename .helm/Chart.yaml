@@ -1,0 +1,12 @@
+apiVersion: v2
+dependencies:
+- name: blackbox
+  version: 1.0.0
+  export-values:
+  - parent: werf
+    child: werf
+- name: endpoints
+  version: 1.0.0
+  export-values:
+  - parent: werf
+    child: werf

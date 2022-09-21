@@ -1,0 +1,17 @@
+giterminismConfigVersion: 1
+
+cli:
+  allowCustomTags: true
+
+helm:
+  allowUncommittedFiles:
+  - .helm/Chart.lock
+
+config:
+  allowUncommitted: true
+
+  stapel:
+    allowFromLatest: true
+  goTemplateRendering:
+    allowEnvVariables:
+    - "WERF_ENV"

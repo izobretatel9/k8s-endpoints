@@ -1,11 +1,166 @@
+blackbox:
+  restartPolicy: Always
+  kind: Deployment
+  namespaceOverride: "blackbox"
+  podDisruptionBudget: {}
+  automountServiceAccountToken: false
+  extraEnv: {}
+  extraVolumes: []
+  extraVolumeMounts:
+
+  extraInitContainers: []
+  extraContainers: []
+  pspEnabled: true
+  hostNetwork: false
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+
+  image:
+    repository: nexus.xxx.ru/prom/blackbox-exporter:v0.22.0
+    pullPolicy: IfNotPresent
+
+  podSecurityContext: {}
+
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+
+  nodeSelector:
+    node-role.deckhouse.io/system: ''
+  tolerations:
+        - key: dedicated.deckhouse.io
+          operator: Equal
+          value: prometheus
+        - key: dedicated.deckhouse.io
+          operator: Equal
+          value: monitoring
+        - key: dedicated.deckhouse.io
+          operator: Equal
+          value: system
+  affinity: {}
+
+  configExistingSecretName: ""
+  secretConfig: false
+  config:
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          follow_redirects: true
+          preferred_ip_protocol: "ip4"
+      tcp_connect:
+        prober: tcp
+
+  extraConfigmapMounts: []
+  extraSecretMounts: []
+
+  resources:
+    limits:
+      memory: 300Mi
+    requests:
+      memory: 50Mi
+
+  priorityClassName: ""
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    port: 9115
+
+  containerPort: 9115
+
+  serviceAccount:
+    create: true
+    name:
+    annotations: {}
+  ingress:
+    enabled: true
+    className: ""
+    labels: {}
+    annotations:
+      kubernetes.io/ingress.class: internal
+    hosts:
+      dev: 
+      - "blackbox.internal.k8s.xxx.ru"
+      production: 
+      - "blackbox.internal.k8s.xxx.ru"
+      aws-production: 
+      - "blackbox.internal.k8s.xxx.com"
+    tls:
+    - secretName: certs-tls-internal.k8s
+
+  podAnnotations: {}
+  hostAliases: []
+  pod:
+    labels: {}
+
+  extraArgs: []
+
+  replicas: 1
+
+  serviceMonitor:
+
+    enabled: true
+    defaults:
+      additionalMetricsRelabels: {}
+      additionalRelabeling:
+        - sourceLabels: [target]
+          targetLabel: target
+      labels:
+        prometheus: main
+      interval: 30s
+      scrapeTimeout: 30s
+      module: tcp_connect
+    scheme: http
+    tlsConfig: {}
+    bearerTokenFile:
+
+  ## Custom PrometheusRules to be defined
+  ## ref: https://github.com/coreos/prometheus-operator#customresourcedefinitions
+  prometheusRule:
+    enabled: false
+    additionalLabels: {}
+    namespace: ""
+    rules: []
+
+  ## Network policy for chart
+  networkPolicy:
+    enabled: false
+    allowMonitoringNamespace: false
+
+  dnsPolicy:
+  dnsConfig:
+
 global:
   endpoints:
-  - ip: 192.111.11.1
-    port: 389
-    name: ad-one
-  - ip: 192.111.11.2
-    port: 389
-    name: ad-two
-  - ip: 192.111.11.3
-    port: 389
-    name: ad-three
+    _default: #all
+      - ip: 192.168.10.1
+        port: 389
+        name: ad-one
+      - ip: 192.168.10.2
+        port: 389
+        name: ad-two
+      - ip: 192.168.10.3
+        port: 389
+        name: ad-three
